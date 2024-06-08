@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Machine learning project</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="sidebar">
+        <p>Machine learning Final project</p>
+        <ul>
+            <li><a href="{% url 'data_upload:upload' %}">Upload Dataset</a></li>
+            <li><a href="{% url 'statistics:show_statistics' %}">Statistics</a></li>
+            <li><a href="{% url 'ml_algorithms:apply_algorithm' %}">Apply Algorithms</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

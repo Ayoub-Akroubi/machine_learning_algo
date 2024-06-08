@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Statistics</h2>
+{% if message %}
+    <p>{{ message }}</p>
+{% else %}
+    <div>{{ statistics|safe }}</div>
+{% endif %}
+{% endblock %}
