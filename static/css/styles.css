@@ -1,0 +1,190 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  position: relative;
+}
+
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-image: linear-gradient(30deg, #0048bd, #44a7fd);
+  border-top-right-radius: 80px;
+  color: #fff;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  flex: 0 0 20%;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.sidebar ul li {
+  margin: 10px 0;
+}
+
+.sidebar ul li a {
+  font-size: 18px;
+  color: #fff;
+  display: block;
+  padding: 12px;
+  padding-left: 30px;
+  text-decoration: none;
+}
+
+.sidebar ul li a:hover {
+  color: #3f5efb;
+  background: #fff;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.sidebar ul li a:hover::after, .sidebar ul li a:hover::before {
+  content: "";
+  position: absolute;
+  background-color: transparent;
+  right: 0;
+  height: 35px;
+  width: 35px;
+  box-shadow: 0 20px 0 0 #fff, 0 -20px 0 0 #fff;
+}
+
+.sidebar ul li a:hover::after {
+  bottom: 100%;
+  border-bottom-right-radius: 18px;
+}
+
+.sidebar ul li a:hover::before {
+  top: 38px;
+  border-top-right-radius: 18px;
+}
+
+.sidebar p {
+  margin: 0;
+  padding: 40px 10px;
+  font-size: 12px;
+  color: black;
+  text-align: start;
+}
+/************************ content ************************/
+.content {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  flex-direction: column;
+  width: 80%;
+}
+
+.content h2{
+  font-size: 35px;
+  color: #334;
+  margin-bottom: 60px;
+}
+
+input[type=file] {
+  max-width: 100%;
+  color: #222245;
+  padding: 8px;
+  background-color: #fff;
+  margin-bottom: 10px;
+}
+
+input[type=file]:focus {
+  outline: 2px dashed #222245;
+  outline-offset: 2px;
+}
+
+input[type=file]::file-selector-button {
+  margin-right: 8px;
+  border: none;
+  background: #007bff;
+  padding: 8px 12px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 30px;
+}
+
+input[type=file]::file-selector-button:hover {
+  background: #0056b3;
+} 
+
+.content form {
+  max-width: 400px; 
+  margin: 50px auto; 
+}
+
+.content form button {
+  background-color: #007bff;
+  color: #fff; 
+  border: none;
+  cursor: pointer;
+  border-radius: 30px;
+  padding: 10px; 
+  display: block;
+  width: 100%;
+}
+
+.content form button:hover {
+  background-color: #0056b3;
+}
+
+.table-wrapper{
+  max-width: 100%;
+  overflow: auto;
+}
+table {
+  width: 100%; 
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd; 
+  padding: 8px;
+}
+
+th {
+  background-color: #f2f2f2; 
+}
+
+::-webkit-scrollbar {
+  width: 10px; 
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.section {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.element {
+  width: 48%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+.element h3 {
+  margin-top: 0;
+}
+pre {
+  white-space: pre-wrap; /* Helps in wrapping long lines */
+}
