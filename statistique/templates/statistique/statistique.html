@@ -5,6 +5,48 @@
 {% if message %}
     <p>{{ message }}</p>
 {% else %}
-    <div>{{ statistics|safe }}</div>
+    <section>
+        <div class="element">
+            <h3>First Few Rows of Data</h3>
+            <div>{{ head|safe }}</div>
+
+        </div>
+        <div class="element">
+            <h3>Data Info</h3>
+            <pre>{{ info }}</pre>
+        </div>
+    </section>
+    <section>
+        <div class="element">
+            <h3>Data Statistics</h3>
+            <div>{{ statistics|safe }}</div>
+        </div>
+        <div class="element">
+            <h3>Data Shape</h3>
+            <p>Number of Rows: {{ shape.0 }}</p>
+            <p>Number of Columns: {{ shape.1 }}</p>
+        </div>
+    </section>
 {% endif %}
 {% endblock %}
+
+<style>
+    .section {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .element {
+        width: 48%;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    .element h3 {
+        margin-top: 0;
+    }
+    pre {
+        white-space: pre-wrap; /* Helps in wrapping long lines */
+    }
+</style>
