@@ -4,15 +4,11 @@
 <h2>Upload Dataset</h2>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <input type="file" name="dataset" >
+    <input type="file" name="dataset" required>
     <button type="submit">Upload</button>
 </form>
+
 {% if message %}
-<h3>Dataset Head: {{ message }}</h3>
-{% elif df_head %}
-<h3>Dataset Head:</h3>
-<div class="table-wrapper">
-  {{ df_head|safe }}
-</div>
+    <h3>{{ message }}</h3>
 {% endif %}
 {% endblock %}
