@@ -22,6 +22,7 @@ def apply_algorithm(request):
         if request.method == 'POST':
             # Preprocess the data
             if 'preprocess' in request.POST:
+              try:
                 # Convert boolean columns to integers
                 bool_cols = df.select_dtypes(include=['bool']).columns
                 df[bool_cols] = df[bool_cols].astype(int)
@@ -33,18 +34,30 @@ def apply_algorithm(request):
                 # Assume target column is the last one
                 X = df.iloc[:, :-1]
                 y = df.iloc[:, -1]
-                
-                # Save the processed data for further use
-                request.session['X'] = X.to_json()
-                request.session['y'] = y.to_json()
-                
+
+                # Convert DataFrames to JSON
+                X_json = X.to_json()
+                y_json = y.to_json()
+
+                # Save the processed data in the session
+                request.session['X'] = X_json
+                request.session['y'] = y_json
+
+                # Calculate statistics
+                statistics = df.describe().to_html()
+
                 message = 'Data preprocessed successfully.'
-                statistics = df.describe().to_html()  # Calculate statistics
                 return render(request, 'ml_algorithms/algorithms.html', {
                     'message': message,
                     'data_ready': True,
                     'statistics': statistics,
                 })
+              except Exception as e:
+                  message = f'Error in preprocessing data: {str(e)}'
+                  return render(request, 'ml_algorithms/algorithms.html', {
+                      'message': message,
+                      'data_ready': False,
+                  })
 
             # Apply Linear Regression
             elif 'linear_regression' in request.POST:
