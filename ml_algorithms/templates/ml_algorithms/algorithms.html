@@ -20,21 +20,36 @@
 {% endif %}
 
 {% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot %}
-    <h3>Linear Regression</h3>
-    <img src="data:image/png;base64,{{ linear_regression_plot }}">
-    <p>R² Score: {{ linear_regression_r2 }}</p>
-
-    <h3>Support Vector Regression</h3>
-    <img src="data:image/png;base64,{{ svr_plot }}">
-    <p>R² Score: {{ svr_r2 }}</p>
-
-    <h3>Random Forest Regression</h3>
-    <img src="data:image/png;base64,{{ random_forest_plot }}">
-    <p>R² Score: {{ random_forest_r2 }}</p>
-
-    <h3>K-Means Clustering</h3>
-    <img src="data:image/png;base64,{{ kmeans_plot }}">
-    <p>Silhouette Score: {{ kmeans_silhouette }}</p>
+  <div class="element-wrapper">
+    <div class="element">
+      <h3>Linear Regression</h3>
+      <div class="image-element">
+        <img src="data:image/png;base64,{{ linear_regression_plot }}">
+      </div>
+      <p>R² Score: {{ linear_regression_r2 }}</p>
+    </div>
+    <div class="element">
+      <h3>Support Vector Regression</h3>
+      <div class="image-element">
+        <img src="data:image/png;base64,{{ svr_plot }}">
+      </div>
+      <p>R² Score: {{ svr_r2 }}</p>
+    </div>
+    <div class="element">
+      <h3>Random Forest Regression</h3>
+      <div class="image-element">
+        <img src="data:image/png;base64,{{ random_forest_plot }}">
+      </div>
+      <p>R² Score: {{ random_forest_r2 }}</p>
+    </div>
+    <div class="element">
+      <h3>K-Means Clustering</h3>
+      <div class="image-element">
+        <img src="data:image/png;base64,{{ kmeans_plot }}">
+      </div>
+      <p>Silhouette Score: {{ kmeans_silhouette }}</p>
+    </div>
+  </div>
 
     <h3>Best Algorithm: {{ best_algorithm }}</h3>
 {% endif %}
