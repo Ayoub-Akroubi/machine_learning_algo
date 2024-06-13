@@ -1,8 +1,12 @@
+# ml_algorithms/views.py
+
 from django.shortcuts import render
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
-from sklearn.metrics import r2_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.cluster import KMeans
+from sklearn.metrics import r2_score, silhouette_score
 import matplotlib.pyplot as plt
 import io
 import urllib, base64
@@ -15,14 +19,19 @@ def apply_algorithm(request):
         df = pd.read_csv(file_path)
 
         statistics = None
-        plot_uri = None
-        r2 = None
-        algorithm_name = None
+        linear_regression_plot = None
+        svr_plot = None
+        random_forest_plot = None
+        kmeans_plot = None
+        linear_regression_r2 = None
+        svr_r2 = None
+        random_forest_r2 = None
+        kmeans_silhouette = None
+        best_algorithm = None
 
         if request.method == 'POST':
             # Preprocess the data
             if 'preprocess' in request.POST:
-              try:
                 # Convert boolean columns to integers
                 bool_cols = df.select_dtypes(include=['bool']).columns
                 df[bool_cols] = df[bool_cols].astype(int)
@@ -34,44 +43,17 @@ def apply_algorithm(request):
                 # Assume target column is the last one
                 X = df.iloc[:, :-1]
                 y = df.iloc[:, -1]
+                
+                # Apply Linear Regression
+                lr_model = LinearRegression()
+                lr_model.fit(X, y)
+                lr_predictions = lr_model.predict(X)
+                linear_regression_r2 = r2_score(y, lr_predictions)
 
-                # Convert DataFrames to JSON
-                X_json = X.to_json()
-                y_json = y.to_json()
-
-                # Save the processed data in the session
-                request.session['X'] = X_json
-                request.session['y'] = y_json
-
-                # Calculate statistics
-                statistics = df.describe().to_html()
-
-                message = 'Data preprocessed successfully.'
-                return render(request, 'ml_algorithms/algorithms.html', {
-                    'message': message,
-                    'data_ready': True,
-                    'statistics': statistics,
-                })
-              except Exception as e:
-                  message = f'Error in preprocessing data: {str(e)}'
-                  return render(request, 'ml_algorithms/algorithms.html', {
-                      'message': message,
-                      'data_ready': False,
-                  })
-
-            # Apply Linear Regression
-            elif 'linear_regression' in request.POST:
-                X = pd.read_json(request.session['X'])
-                y = pd.read_json(request.session['y'], typ='series')
-                model = LinearRegression()
-                model.fit(X, y)
-                predictions = model.predict(X)
-                r2 = r2_score(y, predictions)
-
-                # Plotting
+                # Plotting Linear Regression
                 plt.figure()
                 plt.scatter(X.iloc[:, 0], y, color='blue')  # Assuming single feature for simplicity
-                plt.plot(X.iloc[:, 0], predictions, color='red')
+                plt.plot(X.iloc[:, 0], lr_predictions, color='red')
                 plt.title('Linear Regression')
                 plt.xlabel('Feature')
                 plt.ylabel('Target')
@@ -80,23 +62,19 @@ def apply_algorithm(request):
                 buf = io.BytesIO()
                 plt.savefig(buf, format='png')
                 buf.seek(0)
-                string = base64.b64encode(buf.read())
-                plot_uri = urllib.parse.quote(string)
-                algorithm_name = "Linear Regression"
+                lr_string = base64.b64encode(buf.read())
+                linear_regression_plot = urllib.parse.quote(lr_string)
 
-            # Apply Support Vector Regression
-            elif 'svr' in request.POST:
-                X = pd.read_json(request.session['X'])
-                y = pd.read_json(request.session['y'], typ='series')
-                model = SVR()
-                model.fit(X, y)
-                predictions = model.predict(X)
-                r2 = r2_score(y, predictions)
+                # Apply Support Vector Regression
+                svr_model = SVR()
+                svr_model.fit(X, y)
+                svr_predictions = svr_model.predict(X)
+                svr_r2 = r2_score(y, svr_predictions)
 
-                # Plotting
+                # Plotting Support Vector Regression
                 plt.figure()
                 plt.scatter(X.iloc[:, 0], y, color='blue')  # Assuming single feature for simplicity
-                plt.plot(X.iloc[:, 0], predictions, color='red')
+                plt.plot(X.iloc[:, 0], svr_predictions, color='red')
                 plt.title('Support Vector Regression')
                 plt.xlabel('Feature')
                 plt.ylabel('Target')
@@ -105,26 +83,77 @@ def apply_algorithm(request):
                 buf = io.BytesIO()
                 plt.savefig(buf, format='png')
                 buf.seek(0)
-                string = base64.b64encode(buf.read())
-                plot_uri = urllib.parse.quote(string)
-                algorithm_name = "Support Vector Regression"
+                svr_string = base64.b64encode(buf.read())
+                svr_plot = urllib.parse.quote(svr_string)
+
+                # Apply Random Forest
+                rf_model = RandomForestRegressor()
+                rf_model.fit(X, y)
+                rf_predictions = rf_model.predict(X)
+                random_forest_r2 = r2_score(y, rf_predictions)
+
+                # Plotting Random Forest
+                plt.figure()
+                plt.scatter(X.iloc[:, 0], y, color='blue')  # Assuming single feature for simplicity
+                plt.plot(X.iloc[:, 0], rf_predictions, color='red')
+                plt.title('Random Forest Regression')
+                plt.xlabel('Feature')
+                plt.ylabel('Target')
+
+                # Save plot to a string in base64 format
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                rf_string = base64.b64encode(buf.read())
+                random_forest_plot = urllib.parse.quote(rf_string)
+
+                # Apply K-Means Clustering
+                kmeans_model = KMeans(n_clusters=3)  # Assuming 3 clusters for simplicity
+                kmeans_model.fit(X)
+                kmeans_labels = kmeans_model.labels_
+                kmeans_silhouette = silhouette_score(X, kmeans_labels)
+
+                # Plotting K-Means Clustering
+                plt.figure()
+                plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=kmeans_labels, cmap='viridis')  # Assuming first two features for simplicity
+                plt.title('K-Means Clustering')
+                plt.xlabel('Feature 1')
+                plt.ylabel('Feature 2')
+
+                # Save plot to a string in base64 format
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                kmeans_string = base64.b64encode(buf.read())
+                kmeans_plot = urllib.parse.quote(kmeans_string)
+
+                # Determine the best algorithm based on R2 score and silhouette score
+                best_algorithm = "Linear Regression" if linear_regression_r2 > svr_r2 and linear_regression_r2 > random_forest_r2 else "Support Vector Regression" if svr_r2 > random_forest_r2 else "Random Forest Regression"
+                
+                statistics = df.describe().to_html()  # Calculate statistics
+
+                return render(request, 'ml_algorithms/algorithms.html', {
+                    'statistics': statistics,
+                    'linear_regression_plot': linear_regression_plot,
+                    'svr_plot': svr_plot,
+                    'random_forest_plot': random_forest_plot,
+                    'kmeans_plot': kmeans_plot,
+                    'linear_regression_r2': linear_regression_r2,
+                    'svr_r2': svr_r2,
+                    'random_forest_r2': random_forest_r2,
+                    'kmeans_silhouette': kmeans_silhouette,
+                    'best_algorithm': best_algorithm,
+                })
 
         return render(request, 'ml_algorithms/algorithms.html', {
             'message': 'Upload a dataset and preprocess it to apply algorithms.',
-            'data_ready': False,
-            'statistics': statistics,
-            'plot': plot_uri,
-            'r2': r2,
-            'algorithm': algorithm_name
         })
 
     except UploadedDataset.DoesNotExist:
         return render(request, 'ml_algorithms/algorithms.html', {
             'message': 'No dataset uploaded yet.',
-            'data_ready': False,
         })
     except Exception as e:
         return render(request, 'ml_algorithms/algorithms.html', {
             'message': f'An error occurred: {str(e)}',
-            'data_ready': False,
         })

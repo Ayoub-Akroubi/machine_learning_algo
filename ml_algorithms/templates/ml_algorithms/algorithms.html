@@ -7,18 +7,10 @@
     <p>{{ message }}</p>
 {% endif %}
 
-{% if data_ready %}
-    <h3>Statistics</h3>
-    {% if statistics %}
-        <div>{{ statistics|safe }}</div>
-    {% else %}
-        <p>Calculating statistics...</p>
-    {% endif %}
-    
+{% if statistics %}
     <form method="post">
         {% csrf_token %}
-        <button type="submit" name="linear_regression">Apply Linear Regression</button>
-        <button type="submit" name="svr">Apply Support Vector Regression</button>
+        <button type="submit" name="preprocess">Preprocess Data</button>
     </form>
 {% else %}
     <form method="post">
@@ -27,10 +19,24 @@
     </form>
 {% endif %}
 
-{% if plot %}
-    <h3>{{ algorithm }}</h3>
-    <img src="data:image/png;base64,{{ plot }}">
-    <p>R² Score: {{ r2 }}</p>
+{% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot %}
+    <h3>Linear Regression</h3>
+    <img src="data:image/png;base64,{{ linear_regression_plot }}">
+    <p>R² Score: {{ linear_regression_r2 }}</p>
+
+    <h3>Support Vector Regression</h3>
+    <img src="data:image/png;base64,{{ svr_plot }}">
+    <p>R² Score: {{ svr_r2 }}</p>
+
+    <h3>Random Forest Regression</h3>
+    <img src="data:image/png;base64,{{ random_forest_plot }}">
+    <p>R² Score: {{ random_forest_r2 }}</p>
+
+    <h3>K-Means Clustering</h3>
+    <img src="data:image/png;base64,{{ kmeans_plot }}">
+    <p>Silhouette Score: {{ kmeans_silhouette }}</p>
+
+    <h3>Best Algorithm: {{ best_algorithm }}</h3>
 {% endif %}
 
 {% endblock %}
