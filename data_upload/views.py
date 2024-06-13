@@ -30,6 +30,6 @@ def upload_dataset(request):
                     destination.write(chunk)
             UploadedDataset.objects.create(file_path=file_path)
 
-            df_head = df.head()
-            return render(request, 'data_upload/upload.html', {'df_head': df_head.to_html()})
+            message = "Dataset uploaded successfully."
+            return render(request, 'data_upload/upload.html', {'message': message})
     return render(request, 'data_upload/upload.html')
