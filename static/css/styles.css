@@ -177,3 +177,14 @@ th {
 .element h3 {
   margin-top: 0;
 }
+
+.image-element img{
+  max-width: 100%;
+}
+
+.element p{
+  text-align: center;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-size: 20px;
+  color: #0048bd;
+}

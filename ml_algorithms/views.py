@@ -7,6 +7,7 @@ from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, silhouette_score
+from sklearn.model_selection import GridSearchCV, cross_val_score
 import matplotlib.pyplot as plt
 import io
 import urllib, base64
@@ -43,12 +44,13 @@ def apply_algorithm(request):
                 # Assume target column is the last one
                 X = df.iloc[:, :-1]
                 y = df.iloc[:, -1]
-                
-                # Apply Linear Regression
+
+                # Linear Regression with Cross-Validation
                 lr_model = LinearRegression()
+                lr_cv_scores = cross_val_score(lr_model, X, y, cv=5, scoring='r2')
+                linear_regression_r2 = lr_cv_scores.mean()
                 lr_model.fit(X, y)
                 lr_predictions = lr_model.predict(X)
-                linear_regression_r2 = r2_score(y, lr_predictions)
 
                 # Plotting Linear Regression
                 plt.figure()
@@ -65,11 +67,14 @@ def apply_algorithm(request):
                 lr_string = base64.b64encode(buf.read())
                 linear_regression_plot = urllib.parse.quote(lr_string)
 
-                # Apply Support Vector Regression
+                # Support Vector Regression with Grid Search
                 svr_model = SVR()
-                svr_model.fit(X, y)
+                svr_params = {'C': [0.1, 1, 10], 'epsilon': [0.1, 0.2, 0.5]}
+                svr_grid = GridSearchCV(svr_model, svr_params, cv=5, scoring='r2')
+                svr_grid.fit(X, y)
+                svr_r2 = svr_grid.best_score_
+                svr_model = svr_grid.best_estimator_
                 svr_predictions = svr_model.predict(X)
-                svr_r2 = r2_score(y, svr_predictions)
 
                 # Plotting Support Vector Regression
                 plt.figure()
@@ -86,11 +91,14 @@ def apply_algorithm(request):
                 svr_string = base64.b64encode(buf.read())
                 svr_plot = urllib.parse.quote(svr_string)
 
-                # Apply Random Forest
+                # Random Forest with Grid Search
                 rf_model = RandomForestRegressor()
-                rf_model.fit(X, y)
+                rf_params = {'n_estimators': [10, 50, 100], 'max_depth': [None, 10, 20]}
+                rf_grid = GridSearchCV(rf_model, rf_params, cv=5, scoring='r2')
+                rf_grid.fit(X, y)
+                random_forest_r2 = rf_grid.best_score_
+                rf_model = rf_grid.best_estimator_
                 rf_predictions = rf_model.predict(X)
-                random_forest_r2 = r2_score(y, rf_predictions)
 
                 # Plotting Random Forest
                 plt.figure()
@@ -107,7 +115,7 @@ def apply_algorithm(request):
                 rf_string = base64.b64encode(buf.read())
                 random_forest_plot = urllib.parse.quote(rf_string)
 
-                # Apply K-Means Clustering
+                # K-Means Clustering with Silhouette Score
                 kmeans_model = KMeans(n_clusters=3)  # Assuming 3 clusters for simplicity
                 kmeans_model.fit(X)
                 kmeans_labels = kmeans_model.labels_
@@ -128,7 +136,12 @@ def apply_algorithm(request):
                 kmeans_plot = urllib.parse.quote(kmeans_string)
 
                 # Determine the best algorithm based on R2 score and silhouette score
-                best_algorithm = "Linear Regression" if linear_regression_r2 > svr_r2 and linear_regression_r2 > random_forest_r2 else "Support Vector Regression" if svr_r2 > random_forest_r2 else "Random Forest Regression"
+                best_algorithm = max(
+                    ('Linear Regression', linear_regression_r2),
+                    ('Support Vector Regression', svr_r2),
+                    ('Random Forest Regression', random_forest_r2),
+                    key=lambda x: x[1]
+                )[0]
                 
                 statistics = df.describe().to_html()  # Calculate statistics
 
