@@ -7,51 +7,61 @@
     <p>{{ message }}</p>
 {% endif %}
 
-{% if statistics %}
+{% if columns %}
     <form method="post">
         {% csrf_token %}
-        <button type="submit" name="preprocess">Preprocess Data</button>
+        <label for="target_column">Select Target Column:</label>
+        <select name="target_column" id="target_column">
+            {% for column in columns %}
+                <option value="{{ column }}">{{ column }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" name="select_target">Select Target</button>
     </form>
-{% else %}
+{% endif %}
+
+{% if selected_target %}
     <form method="post">
         {% csrf_token %}
         <button type="submit" name="preprocess">Preprocess Data</button>
     </form>
 {% endif %}
 
-{% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot %}
-  <div class="element-wrapper">
-    <div class="element">
-      <h3>Linear Regression</h3>
-      <div class="image-element">
-        <img src="data:image/png;base64,{{ linear_regression_plot }}">
-      </div>
-      <p>R² Score: {{ linear_regression_r2 }}</p>
-    </div>
-    <div class="element">
-      <h3>Support Vector Regression</h3>
-      <div class="image-element">
-        <img src="data:image/png;base64,{{ svr_plot }}">
-      </div>
-      <p>R² Score: {{ svr_r2 }}</p>
-    </div>
-    <div class="element">
-      <h3>Random Forest Regression</h3>
-      <div class="image-element">
-        <img src="data:image/png;base64,{{ random_forest_plot }}">
-      </div>
-      <p>R² Score: {{ random_forest_r2 }}</p>
-    </div>
-    <div class="element">
-      <h3>K-Means Clustering</h3>
-      <div class="image-element">
-        <img src="data:image/png;base64,{{ kmeans_plot }}">
-      </div>
-      <p>Silhouette Score: {{ kmeans_silhouette }}</p>
-    </div>
-  </div>
 
-    <h3>Best Algorithm: {{ best_algorithm }}</h3>
+{% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot %}
+    <div class="element-wrapper">
+        <div class="element">
+            <h3>Linear Regression</h3>
+            <div class="image-element">
+                <img src="data:image/png;base64,{{ linear_regression_plot }}">
+            </div>
+            <p>R² Score: {{ linear_regression_r2 }}</p>
+        </div>
+        <div class="element">
+            <h3>Support Vector Regression</h3>
+            <div class="image-element">
+                <img src="data:image/png;base64,{{ svr_plot }}">
+            </div>
+            <p>R² Score: {{ svr_r2 }}</p>
+        </div>
+        <div class="element">
+            <h3>Random Forest Regression</h3>
+            <div class="image-element">
+                <img src="data:image/png;base64,{{ random_forest_plot }}">
+            </div>
+            <p>R² Score: {{ random_forest_r2 }}</p>
+        </div>
+        <div class="element">
+            <h3>K-Means Clustering</h3>
+            <div class="image-element">
+                <img src="data:image/png;base64,{{ kmeans_plot }}">
+            </div>
+            <p>Silhouette Score: {{ kmeans_silhouette }}</p>
+        </div>
+    </div>
+    <div>
+        <h3>Best Algorithm: {{ best_algorithm }}</h3>
+    </div>
 {% endif %}
 
 {% endblock %}
