@@ -8,12 +8,21 @@
     <div class="element-wrapper">
       <div class="element">
         <h3>Data Info</h3>
-        <pre>{{ info }}</pre>
+        <pre class="data-shape-element">{{ info }}</pre>
       </div>
       <div class="element">
         <h3>Data Shape</h3>
-        <p>Number of Rows: {{ shape.0 }}</p>
-        <p>Number of Columns: {{ shape.1 }}</p>
+        <div class="data-shape-wrapper">
+          <div class="data-shape-element">
+            <p> Number of Rows </p>
+            <div>{{ shape.0 }}</div>
+          </div>
+          <div class="data-shape-element">
+            <p> Number of Columns </p>
+            <div>{{ shape.1 }}</div>
+          </div>
+        </div>
+      
       </div>
       <div class="table-wrapper element">
         <h3>Data Head</h3>

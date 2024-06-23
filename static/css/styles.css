@@ -266,3 +266,22 @@ select {
   font-family: Verdana;
   margin-left: 15px;
 }
+
+
+.data-shape-element{
+  background-color: #e0e7e9;
+  padding: 10px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.data-shape-element p{
+  font-size: 15px;
+  font-weight: 500 ;
+}
+
+.data-shape-element div{
+  font-size: 25px;
+  text-align: center;
+}
