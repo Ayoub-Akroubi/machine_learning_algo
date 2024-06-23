@@ -1,9 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Montserrat";
   margin: 0;
   height: 100vh;
   display: flex;
   position: relative;
+}
+*{
+  font-family: "Montserrat";
 }
 
 .sidebar {
@@ -71,7 +75,8 @@ body {
 .content h2{
   font-size: 35px;
   color: #334;
-  margin-bottom: 60px;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
 input[type=file] {
@@ -101,12 +106,12 @@ input[type=file]::file-selector-button:hover {
   background: #0056b3;
 } 
 
-.content form {
+.content .form {
   max-width: 400px; 
   margin: 50px auto; 
 }
 
-.content form button {
+.content .form button {
   background-color: #007bff;
   color: #fff; 
   border: none;
@@ -116,6 +121,23 @@ input[type=file]::file-selector-button:hover {
   display: block;
   width: 100%;
 }
+
+.succes{
+  text-align: center;
+  color: rgb(4, 192, 4);
+}
+
+.message {
+  text-align: center;
+  color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: rgb(15 175 15);
+  border: 1px solid rgb(2, 141, 2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+}
+
 
 .content form button:hover {
   background-color: #0056b3;
@@ -170,21 +192,77 @@ th {
 .element {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: #f9f9f9;
 }
 
 .element h3 {
   margin-top: 0;
+  text-align: center;
+  font-size: 15px;
 }
 
+h3 {
+  margin: 10px;
+}
 .image-element img{
   max-width: 100%;
+
 }
 
-.element p{
+.image-element{
+  display: flex;
+  justify-content: center;
+}
+
+.content .algo_forms{
+  margin: 10px;
+}
+
+.content .algo_forms button {
+  background-color: #007bff;
+  color: #fff; 
+  border: none;
+  cursor: pointer;
+  border-radius: 30px;
+  padding: 10px;
+}
+
+select {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin: 0px 20px;
+}
+
+.r2-value{
   text-align: center;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-  font-size: 20px;
-  color: #0048bd;
+  text-decoration: solid;
+  margin: 10px;
+}
+.green {
+  color: green;
+}
+.orange {
+  color: orange;
+}
+.red {
+  color: red;
+}
+
+.best_algorithm{
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 0px 20px;
+  margin: 20px auto;
+  border-radius: 10px;
+  background-color: #12c99b;
+}
+
+.best_algorithm p{
+  color: #fff;
+  font-family: Verdana;
+  margin-left: 15px;
 }

@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import r2_score, silhouette_score
 from sklearn.model_selection import GridSearchCV, cross_val_score
 from django.shortcuts import render
 from data_upload.models import UploadedDataset
 from sklearn.preprocessing import StandardScaler
-
 from sklearn.model_selection import  train_test_split
+from scipy.cluster.hierarchy import dendrogram, linkage
 
 def preprocess_data(df):
     # Convertir les colonnes booléennes en entiers
@@ -29,6 +29,255 @@ def preprocess_data(df):
     df[numeric_cols] = df[numeric_cols].astype(float)  # Assurez-vous que toutes les colonnes numériques sont en float64
     
     return df
+
+
+
+def apply_algorithm(request):
+    try:
+        dataset = UploadedDataset.objects.latest('uploaded_at')
+        file_path = dataset.file_path
+        df = pd.read_csv(file_path)
+        columns = list(df.columns)
+
+        if request.method == 'POST':
+            if 'select_target' in request.POST:
+                target_column = request.POST.get('target_column')
+                if not target_column:
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Please select a target column.',
+                        'columns': columns,
+                    })
+
+                request.session['target_column'] = target_column
+                return render(request, 'ml_algorithms/apply_algorithms.html', {
+                    'message': 'Target column selected. Now click "Preprocess Data" to proceed.',
+                    'selected_target': target_column,
+                })
+
+            if 'preprocess' in request.POST:
+                target_column = request.session.get('target_column')
+                if not target_column:
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Target column not selected.',
+                        'columns': columns,
+                    })
+
+                df = preprocess_data(df)
+                X = df.drop(columns=[target_column])
+                y = df[target_column]
+                request.session['preprocessed'] = True
+                request.session['columns'] = columns
+                return render(request, 'ml_algorithms/apply_algorithms.html', {
+                    'message': 'Data has been preprocessed.',
+                    'preprocessed': True,
+                })
+
+            if 'algorithm' in request.POST:
+                target_column = request.session.get('target_column')
+                if not target_column:
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Target column not selected.',
+                        'columns': columns,
+                    })
+
+                if not request.session.get('preprocessed'):
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Data not preprocessed.',
+                        'columns': columns,
+                    })
+
+                df = preprocess_data(df)
+                X = df.drop(columns=[target_column])
+                y = df[target_column]
+
+                algorithm = request.POST.get('algorithm')
+                r2 = silhouette = 0
+                if algorithm == 'linear_regression':
+                    r2, plot = apply_linear_regression(X, y)
+                elif algorithm == 'random_forest_regression':
+                    r2, plot = apply_random_forest(X, y)
+                elif algorithm == 'support_vector_regression':
+                    r2, plot = apply_svr(X, y)
+                elif algorithm == 'k_means_clustering':
+                    silhouette, plot = apply_kmeans(X)
+                elif algorithm == 'hierarchical_clustering':
+                    silhouette, dendrogram_plot, cluster_plot = apply_hierarchical_clustering(X)
+                    plot = cluster_plot
+                else:
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Invalid algorithm selected.',
+                        'columns': columns,
+                    })
+
+                return render(request, 'ml_algorithms/apply_algorithms.html', {
+                    'message': f'{algorithm.replace("_", " ").title()} applied.',
+                    'preprocessed': True,
+                    'plot': plot,
+                    'r2': r2,
+                    'silhouette': silhouette,
+
+                })
+            
+            if 'all_algorithms' in request.POST:
+                target_column = request.session.get('target_column')
+                if not target_column:
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Target column not selected.',
+                        'columns': columns,
+                    })
+
+                if not request.session.get('preprocessed'):
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Data not preprocessed.',
+                        'columns': columns,
+                    })
+
+                df = preprocess_data(df)
+                X = df.drop(columns=[target_column])
+                y = df[target_column]
+
+                linear_regression_r2, linear_regression_plot = apply_linear_regression(X, y)
+                svr_r2, svr_plot = apply_svr(X, y)
+                random_forest_r2, random_forest_plot = apply_random_forest(X, y)
+                kmeans_silhouette, kmeans_plot = apply_kmeans(X)
+
+                best_algorithm = max(
+                    {
+                        "Linear Regression": linear_regression_r2,
+                        "Support Vector Regression": svr_r2,
+                        "Random Forest Regression": random_forest_r2
+                    },
+                    key=lambda k: {
+                        "Linear Regression": linear_regression_r2,
+                        "Support Vector Regression": svr_r2,
+                        "Random Forest Regression": random_forest_r2
+                    }[k]
+                )
+
+                best_clustering_algorithm = "K-Means Clustering" if kmeans_silhouette > max(linear_regression_r2, svr_r2, random_forest_r2) else best_algorithm
+
+
+                
+                return render(request, 'ml_algorithms/apply_algorithms.html', {
+                    'message': 'All algorithms are applied.',
+                    'preprocessed': True,
+                    'linear_regression_plot': linear_regression_plot,
+                    'svr_plot': svr_plot,
+                    'random_forest_plot': random_forest_plot,
+                    'kmeans_plot': kmeans_plot,
+                    'linear_regression_r2': linear_regression_r2,
+                    'svr_r2': svr_r2,
+                    'random_forest_r2': random_forest_r2,
+                    'kmeans_silhouette': kmeans_silhouette,
+                    'best_algorithm': best_algorithm,
+                    'best_clustering_algorithm': best_clustering_algorithm,
+                })
+            
+
+        return render(request, 'ml_algorithms/apply_algorithms.html', {
+            'columns': columns,
+        })
+
+    except UploadedDataset.DoesNotExist:
+        return render(request, 'ml_algorithms/apply_algorithms.html', {
+            'message': 'No dataset uploaded yet. Please upload data.',
+        })
+    except FileNotFoundError:
+        return render(request, 'ml_algorithms/apply_algorithms.html', {'message': 'Dataset file not found.'})
+
+    except Exception as e:
+        return render(request, 'ml_algorithms/apply_algorithms.html', {
+            'message': f'An error occurred: {str(e)}. Please upload data.',
+        })
+    
+    
+# def apply_algorithm(request):
+#     try:
+#         dataset = UploadedDataset.objects.latest('uploaded_at')
+#         file_path = dataset.file_path
+#         df = pd.read_csv(file_path)
+#         columns = list(df.columns)
+
+#         if request.method == 'POST':
+#             if 'select_target' in request.POST:
+#                 target_column = request.POST.get('target_column')
+#                 if not target_column:
+#                     return render(request, 'ml_algorithms/algorithms.html', {
+#                         'message': 'Please select a target column.',
+#                         'columns': columns,
+#                     })
+
+#                 request.session['target_column'] = target_column
+#                 return render(request, 'ml_algorithms/algorithms.html', {
+#                     'columns': columns,
+#                     'selected_target': target_column,
+#                     'message': 'Target column selected. Now click "Preprocess Data" to proceed.'
+#                 })
+
+#             if 'preprocess' in request.POST:
+#                 target_column = request.session.get('target_column')
+#                 if not target_column:
+#                     return render(request, 'ml_algorithms/algorithms.html', {
+#                         'message': 'Target column not selected.',
+#                         'columns': columns,
+#                     })
+
+#                 df = preprocess_data(df)
+#                 X = df.drop(columns=[target_column])
+#                 y = df[target_column]
+
+#                 linear_regression_r2, linear_regression_plot = apply_linear_regression(X, y)
+#                 svr_r2, svr_plot = apply_svr(X, y)
+#                 random_forest_r2, random_forest_plot = apply_random_forest(X, y)
+#                 kmeans_silhouette, kmeans_plot = apply_kmeans(X)
+
+#                 theta, gradient_descent_plot = linear_regression_gradient_descent(X, y)
+
+#                 best_algorithm = max(
+#                     {
+#                         "Linear Regression": linear_regression_r2,
+#                         "Support Vector Regression": svr_r2,
+#                         "Random Forest Regression": random_forest_r2
+#                     },
+#                     key=lambda k: {
+#                         "Linear Regression": linear_regression_r2,
+#                         "Support Vector Regression": svr_r2,
+#                         "Random Forest Regression": random_forest_r2
+#                     }[k]
+#                 )
+
+#                 best_clustering_algorithm = "K-Means Clustering" if kmeans_silhouette > max(linear_regression_r2, svr_r2, random_forest_r2) else best_algorithm
+
+#                 statistics = df.describe().to_html()
+
+#                 return render(request, 'ml_algorithms/algorithms.html', {
+#                     'statistics': statistics,
+#                     'linear_regression_plot': linear_regression_plot,
+#                     'svr_plot': svr_plot,
+#                     'random_forest_plot': random_forest_plot,
+#                     'kmeans_plot': kmeans_plot,
+#                     'linear_regression_r2': linear_regression_r2,
+#                     'svr_r2': svr_r2,
+#                     'random_forest_r2': random_forest_r2,
+#                     'kmeans_silhouette': kmeans_silhouette,
+#                     'best_algorithm': best_algorithm,
+#                     'best_clustering_algorithm': best_clustering_algorithm,
+#                     'gradient_descent_plot': gradient_descent_plot,
+#                     'theta': theta
+#                 })
+
+#         return render(request, 'ml_algorithms/algorithms.html', {
+#             'columns': columns,
+#         })
+
+#     except UploadedDataset.DoesNotExist:
+#         return render(request, 'ml_algorithms/algorithms.html', {
+#             'message': 'No dataset uploaded yet.',
+#         })
+#     except Exception as e:
+#         return render(request, 'ml_algorithms/algorithms.html', {
+#             'message': f'An error occurred: {str(e)}',
+#         })
 
 
 
@@ -187,25 +436,20 @@ import numpy as np
 
 def gradient_descent(X, y, learning_rate=0.01, epochs=1000):
     m, n = X.shape
-    theta = np.zeros(n)  # Initialize parameters with zeros or random values
+    theta = np.zeros(n)  
     
     cost_history = []
     
     for epoch in range(epochs):
-        # Hypothesis/prediction of the model
         h = np.dot(X, theta)
         
-        # Error
         error = h - y
         
-        # Cost function (MSE)
         cost = np.sum(error ** 2) / (2 * m)
         cost_history.append(cost)
         
-        # Gradient calculation
         gradient = np.dot(X.T, error) / m
         
-        # Update parameters (theta)
         theta -= learning_rate * gradient
         
     return theta, cost_history
@@ -213,33 +457,23 @@ def gradient_descent(X, y, learning_rate=0.01, epochs=1000):
 def linear_regression_gradient_descent(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    # Ensure X_train and X_test are numeric and correctly typed
     X_train = X_train.astype(float)
     X_test = X_test.astype(float)
     y_train = y_train.astype(float)
     y_test = y_test.astype(float)
     
-    # Add bias term (intercept)
     X_train = np.c_[np.ones((len(X_train), 1)), X_train]
     
-    # Initialize gradient descent parameters
     learning_rate = 0.01
     epochs = 1000
     
-    # Perform gradient descent
     theta, cost_history = gradient_descent(X_train, y_train, learning_rate, epochs)
     
-    # Predictions
     X_test = np.c_[np.ones((len(X_test), 1)), X_test]
     predictions = np.dot(X_test, theta)
-    
-    # Calculate R^2 score or other metrics if needed
-    
-    
-    # Plotting
+  
     plt.figure()
    
-
     plt.scatter(range(len(y_test)), y_test, color='blue', label='Actual')
     plt.scatter(range(len(y_test)), predictions, color='red', label='Predicted')
     plt.plot(range(len(y_test)), predictions, color='red', linestyle='--', label='Linear Regression Line')
@@ -255,91 +489,32 @@ def linear_regression_gradient_descent(X, y):
     return theta, gradient_descent_plot
 
 
+def apply_hierarchical_clustering(X):
+    hier_model = AgglomerativeClustering(n_clusters=3)
+    hier_labels = hier_model.fit_predict(X)
 
-def apply_algorithm(request):
-    try:
-        dataset = UploadedDataset.objects.latest('uploaded_at')
-        file_path = dataset.file_path
-        df = pd.read_csv(file_path)
-        columns = list(df.columns)
+    hier_silhouette = silhouette_score(X, hier_labels)
 
-        if request.method == 'POST':
-            if 'select_target' in request.POST:
-                target_column = request.POST.get('target_column')
-                if not target_column:
-                    return render(request, 'ml_algorithms/algorithms.html', {
-                        'message': 'Please select a target column.',
-                        'columns': columns,
-                    })
+    plt.figure(figsize=(10, 7))
+    plt.title("Hierarchical Clustering Dendrogram")
+    Z = linkage(X, 'ward')
+    dendrogram(Z)
+    hier_dendrogram_plot = plot_to_base64(plt)
+    
+    plt.close()
 
-                request.session['target_column'] = target_column
-                return render(request, 'ml_algorithms/algorithms.html', {
-                    'columns': columns,
-                    'selected_target': target_column,
-                    'message': 'Target column selected. Now click "Preprocess Data" to proceed.'
-                })
+    plt.figure()
+    if X.shape[1] > 1:
+        plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=hier_labels, cmap='viridis')
+        plt.xlabel('Feature 1')
+        plt.ylabel('Feature 2')
+    else:
+        plt.scatter(X.iloc[:, 0], [0] * len(X), c=hier_labels, cmap='viridis')
+        plt.xlabel('Feature')
+        plt.ylabel('Cluster')
+    plt.title('Hierarchical Clustering')
+    hier_cluster_plot = plot_to_base64(plt)
 
-            if 'preprocess' in request.POST:
-                target_column = request.session.get('target_column')
-                if not target_column:
-                    return render(request, 'ml_algorithms/algorithms.html', {
-                        'message': 'Target column not selected.',
-                        'columns': columns,
-                    })
-
-                df = preprocess_data(df)
-                X = df.drop(columns=[target_column])
-                y = df[target_column]
-
-                linear_regression_r2, linear_regression_plot = apply_linear_regression(X, y)
-                svr_r2, svr_plot = apply_svr(X, y)
-                random_forest_r2, random_forest_plot = apply_random_forest(X, y)
-                kmeans_silhouette, kmeans_plot = apply_kmeans(X)
-
-                theta, gradient_descent_plot = linear_regression_gradient_descent(X, y)
-
-                best_algorithm = max(
-                    {
-                        "Linear Regression": linear_regression_r2,
-                        "Support Vector Regression": svr_r2,
-                        "Random Forest Regression": random_forest_r2
-                    },
-                    key=lambda k: {
-                        "Linear Regression": linear_regression_r2,
-                        "Support Vector Regression": svr_r2,
-                        "Random Forest Regression": random_forest_r2
-                    }[k]
-                )
-
-                best_clustering_algorithm = "K-Means Clustering" if kmeans_silhouette > max(linear_regression_r2, svr_r2, random_forest_r2) else best_algorithm
-
-                statistics = df.describe().to_html()
-
-                return render(request, 'ml_algorithms/algorithms.html', {
-                    'statistics': statistics,
-                    'linear_regression_plot': linear_regression_plot,
-                    'svr_plot': svr_plot,
-                    'random_forest_plot': random_forest_plot,
-                    'kmeans_plot': kmeans_plot,
-                    'linear_regression_r2': linear_regression_r2,
-                    'svr_r2': svr_r2,
-                    'random_forest_r2': random_forest_r2,
-                    'kmeans_silhouette': kmeans_silhouette,
-                    'best_algorithm': best_algorithm,
-                    'best_clustering_algorithm': best_clustering_algorithm,
-                    'gradient_descent_plot': gradient_descent_plot,
-                    'theta': theta
-                })
-
-        return render(request, 'ml_algorithms/algorithms.html', {
-            'columns': columns,
-        })
-
-    except UploadedDataset.DoesNotExist:
-        return render(request, 'ml_algorithms/algorithms.html', {
-            'message': 'No dataset uploaded yet.',
-        })
-    except Exception as e:
-        return render(request, 'ml_algorithms/algorithms.html', {
-            'message': f'An error occurred: {str(e)}',
-        })
+    plt.close()
+    
+    return hier_silhouette, hier_dendrogram_plot, hier_cluster_plot

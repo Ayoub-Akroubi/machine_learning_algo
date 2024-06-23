@@ -2,13 +2,13 @@
 
 {% block content %}
 <h2>Upload Dataset</h2>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="form">
     {% csrf_token %}
     <input type="file" name="dataset" required>
     <button type="submit">Upload</button>
 </form>
 
 {% if message %}
-    <h3>{{ message }}</h3>
+    <h3 class="succes">{{ message }}</h3>
 {% endif %}
 {% endblock %}

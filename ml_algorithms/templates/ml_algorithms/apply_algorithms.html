@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Apply Algorithms</h2>
+
+    {% if message %}
+        <div class="message">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    {% if columns %}
+        <h3>Select Target Column:</h3>
+        <form method="post" class="algo_forms">
+            {% csrf_token %}
+            <select name="target_column" id="target_column">
+                {% for column in columns %}
+                    <option value="{{ column }}">{{ column }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" name="select_target">Select Target</button>
+        </form>
+    {% endif %}
+
+    {% if selected_target %}
+        <h3>Preprocessing Data</h3>
+        <form method="post" class="algo_forms">
+            {% csrf_token %}
+            <button type="submit" name="preprocess">Preprocess Data</button>
+        </form>
+    {% endif %}
+
+    {% if preprocessed %}
+        <h3>Regression Algorithms</h3>
+        <form method="post" class="algo_forms regression">
+            {% csrf_token %}
+            <input type="hidden" name="target_column" value="{{ selected_target }}">
+            <button type="submit" name="algorithm" value="linear_regression">Linear Regression</button>
+            <button type="submit" name="algorithm" value="random_forest_regression">Random Forest Regression</button>
+            <button type="submit" name="algorithm" value="support_vector_regression">Support Vector Regression</button>
+        </form>
+        <h3>Clustering Algorithms</h3>
+        <form method="post" class="algo_forms">
+            {% csrf_token %}
+            <input type="hidden" name="target_column" value="{{ selected_target }}">
+            <button type="submit" name="algorithm" value="k_means_clustering">K-Means Clustering</button>
+            <button type="submit" name="algorithm" value="hierarchical_clustering">Hierarchical Clustering</button>
+        </form>
+
+        <h3>Get the best model</h3>
+        <form method="post" class="algo_forms">
+            {% csrf_token %}
+            <input type="hidden" name="target_column" value="{{ selected_target }}">
+            <button type="submit" name="all_algorithms" value="all_algorithms">Apply Algorithms</button>
+        </form>
+    {% endif %}
+
+    {% if plot %}
+      <div class="element">
+        <label style="text-align: center; margin-bottom: 15px;">Model Performance</label>
+        {% if r2 %}
+          <div class="r2-value {% if r2 >= 0.7 %}green{% elif r2 >= 0.4 %}orange{% else %}red{% endif %}">
+            R² Score: {{ r2 }}
+          </div>
+        {% endif %}
+        {% if silhouette %}
+          <div class="r2-value {% if silhouette >= 0.7 %}green{% elif silhouette >= 0.4 %}orange{% else %}red{% endif %}">
+            Silhouette: {{ silhouette }}
+          </div>
+        {% endif %}
+        <div class="image-element">
+          <img src="data:image/png;base64,{{ plot }}" alt="Algorithm Plot">
+        </div>
+      </div>
+    {% endif %}
+
+    {% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot   %}
+
+      <div class="best_algorithm">
+        <p>Best Algorithm : {{ best_algorithm }}</p>
+    </div>
+        <div class="element-wrapper">
+            <div class="element">
+                <h3>Linear Regression</h3>
+                <div class="image-element">
+                    <img src="data:image/png;base64,{{ linear_regression_plot }}">
+                </div>
+                <div class="r2-value {% if linear_regression_r2 >= 0.7 %}green{% elif linear_regression_r2 >= 0.4 %}orange{% else %}red{% endif %}">
+                  R² Score: {{ linear_regression_r2 }}
+                </div>
+            </div>
+            <div class="element">
+                <h3>Support Vector Regression</h3>
+                <div class="image-element">
+                    <img src="data:image/png;base64,{{ svr_plot }}">
+                </div>
+                <div class="r2-value {% if svr_r2 >= 0.7 %}green{% elif svr_r2 >= 0.4 %}orange{% else %}red{% endif %}">
+                  R² Score: {{ svr_r2 }}
+                </div>
+            </div>
+            <div class="element">
+                <h3>Random Forest Regression</h3>
+                <div class="image-element">
+                    <img src="data:image/png;base64,{{ random_forest_plot }}">
+                </div>
+                <div class="r2-value {% if random_forest_r2 >= 0.7 %}green{% elif random_forest_r2 >= 0.4 %}orange{% else %}red{% endif %}">
+                  R² Score: {{ random_forest_r2 }}
+                </div>
+            </div>
+            <div class="element">
+                <h3>K-Means Clustering</h3>
+                <div class="image-element">
+                    <img src="data:image/png;base64,{{ kmeans_plot }}">
+                </div>
+                <div class="r2-value {% if kmeans_silhouette >= 0.7 %}green{% elif kmeans_silhouette >= 0.4 %}orange{% else %}red{% endif %}">
+                  Silhouette Score:: {{ kmeans_silhouette }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}

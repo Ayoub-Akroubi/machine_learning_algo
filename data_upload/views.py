@@ -30,6 +30,6 @@ def upload_dataset(request):
                     destination.write(chunk)
             UploadedDataset.objects.create(file_path=file_path)
 
-            message = "Dataset uploaded successfully."
+            message = "Dataset uploaded successfully, you can go to the statistics page."
             return render(request, 'data_upload/upload.html', {'message': message})
     return render(request, 'data_upload/upload.html')
