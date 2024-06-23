@@ -23,4 +23,5 @@ urlpatterns = [
      path('data_upload/', include('data_upload.urls')),
     path('statistics/', include('statistique.urls')),
     path('ml_algorithms/', include('ml_algorithms.urls')),
+    path('prediction/', include('prediction.urls')),
 ]
