@@ -31,6 +31,7 @@
     {% endif %}
 
     {% if preprocessed %}
+      {% if algorithms == 'regression' %}
         <h3>Regression Algorithms</h3>
         <form method="post" class="algo_forms regression">
             {% csrf_token %}
@@ -39,6 +40,9 @@
             <button type="submit" name="algorithm" value="random_forest_regression">Random Forest Regression</button>
             <button type="submit" name="algorithm" value="support_vector_regression">Support Vector Regression</button>
         </form>
+      {% endif %}
+
+      {% if algorithms == 'clustering' %}
         <h3>Clustering Algorithms</h3>
         <form method="post" class="algo_forms">
             {% csrf_token %}
@@ -46,9 +50,9 @@
             <button type="submit" name="algorithm" value="k_means_clustering">K-Means Clustering</button>
             <button type="submit" name="algorithm" value="hierarchical_clustering">Hierarchical Clustering</button>
         </form>
+      {% endif %}
 
-
-
+      {% if algorithms == 'classification' %}
         <h3>Classification Algorithms</h3>
         <form method="post" class="algo_forms">
             {% csrf_token %}
@@ -57,7 +61,7 @@
             <button type="submit" name="algorithm" value="sgd_classifier">SGD classifier</button>
         </form>
 
-
+      {% endif %}
         <h3>Get the best model</h3>
         <form method="post" class="algo_forms">
             {% csrf_token %}
@@ -86,13 +90,34 @@
         </div>
        {% endif %}
 
-
-
         <div class="image-element">
           <img src="data:image/png;base64,{{ plot }}" alt="Algorithm Plot">
         </div>
       </div>
+      <h3>Predict the new value</h3>
+      <div class="inputs">
+        <form method="post" class="algo_forms">
+          {% csrf_token %}
+          {% for column in inputs %}
+            {% if column != target %}
+              <label for="{{ column }}">{{ column }} :</label>
+              <input name="{{ column }}" type="text">
+            {% endif %}
+            {% endfor %}
+            <button type="submit" name="predict" value="predict">Predict</button>
+
+        </form>
+      </div>
     {% endif %}
+
+    {% if prediction %}
+      <div class="prediction-result">
+          <h3>Prediction Result</h3>
+          <p>{{ prediction }}</p>
+      </div>
+    {% endif %}
+
+
 
     {% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot and logistic_plot %}
       <div class="best_algorithm">

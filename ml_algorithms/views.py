@@ -15,6 +15,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import  train_test_split
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.linear_model import SGDClassifier
+from sklearn.linear_model import SGDClassifier
 
 def preprocess_data(df):
     # Convertir les colonnes booléennes en entiers
@@ -30,6 +31,9 @@ def preprocess_data(df):
     df[numeric_cols] = df[numeric_cols].astype(float)  # Assurez-vous que toutes les colonnes numériques sont en float64
     
     return df
+
+def is_binary(series):
+    return set(series) <= {0, 1}
 
 
 
@@ -68,9 +72,19 @@ def apply_algorithm(request):
                 y = df[target_column]
                 request.session['preprocessed'] = True
                 request.session['columns'] = columns
+                algorithms = ''
+                unique_val = df[target_column].nunique()
+
+                is_numeric = pd.api.types.is_numeric_dtype(df[target_column])
+
+                if is_numeric and unique_val > 2:
+                    algorithms = "regression"
+                else:
+                    algorithms = "classification"
                 return render(request, 'ml_algorithms/apply_algorithms.html', {
                     'message': 'Data has been preprocessed.',
                     'preprocessed': True,
+                    'algorithms': algorithms
                 })
 
             if 'algorithm' in request.POST:
@@ -121,6 +135,7 @@ def apply_algorithm(request):
                         'columns': columns,
                     })
 
+                request.session['selected_algorithm'] = algorithm
                 return render(request, 'ml_algorithms/apply_algorithms.html', {
                     'message': f'{algorithm.replace("_", " ").title()} applied.',
                     'preprocessed': True,
@@ -129,6 +144,8 @@ def apply_algorithm(request):
                     'silhouette': silhouette,
                     'accuracy': accuracy,
                     'report': report,
+                    'inputs': columns,
+                    'target': target_column
                 })
             
             if 'all_algorithms' in request.POST:
@@ -188,7 +205,59 @@ def apply_algorithm(request):
                     'best_algorithm': best_algorithm,
                     'best_clustering_algorithm': best_clustering_algorithm,
                 })
-            
+
+            if 'predict' in request.POST:
+                target_column = request.session.get('target_column')
+                selected_algorithm = request.session.get('selected_algorithm')
+                
+                if not target_column or not selected_algorithm:
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'Please apply an algorithm first.',
+                        'columns': columns,
+                    })
+
+                df = preprocess_data(df)
+                X = df.drop(columns=[target_column])
+                y = df[target_column]
+
+                input_data = {}
+                for column in columns:
+                    if column != target_column:
+                        input_data[column] = [request.POST.get(column)]
+
+                input_df = pd.DataFrame(input_data)
+
+                prediction = None
+
+                if selected_algorithm == 'linear_regression':
+                    model = train_linear_regression(X, y)
+                    prediction = model.predict(input_df)
+                elif selected_algorithm == 'random_forest_regression':
+                    model = train_random_forest(X, y)
+                    prediction = model.predict(input_df)
+                elif selected_algorithm == 'support_vector_regression':
+                    model = train_svr(X, y)
+                    prediction = model.predict(input_df)
+                elif selected_algorithm == 'logistic_regression':
+                    model = train_logistic_regression(X, y)
+                    prediction = model.predict(input_df)
+                elif selected_algorithm == 'sgd_classifier':
+                    model = train_sgd_classifier(X, y)
+                    prediction = model.predict(input_df)
+                # For clustering algorithms, prediction is not straightforward and might not be applicable
+
+                return render(request, 'ml_algorithms/apply_algorithms.html', {
+                    'message': 'Prediction completed.',
+                    'preprocessed': True,
+                    'plot': request.session.get('plot'),
+                    'r2': request.session.get('r2'),
+                    'silhouette': request.session.get('silhouette'),
+                    'accuracy': request.session.get('accuracy'),
+                    'report': request.session.get('report'),
+                    'inputs': columns,
+                    'target': target_column,
+                    'prediction': prediction[0] if prediction is not None else 'Prediction not available'
+                })
 
         return render(request, 'ml_algorithms/apply_algorithms.html', {
             'columns': columns,
@@ -200,13 +269,36 @@ def apply_algorithm(request):
         })
     except FileNotFoundError:
         return render(request, 'ml_algorithms/apply_algorithms.html', {'message': 'Dataset file not found.'})
-
     except Exception as e:
         return render(request, 'ml_algorithms/apply_algorithms.html', {
             'message': f'An error occurred: {str(e)}. Please upload data.',
         })
+  
 
-    
+def train_linear_regression(X, y):
+    model = LinearRegression()
+    model.fit(X, y)
+    return model
+
+def train_random_forest(X, y):
+    model = RandomForestRegressor()
+    model.fit(X, y)
+    return model
+
+def train_svr(X, y):
+    model = SVR()
+    model.fit(X, y)
+    return model
+
+def train_logistic_regression(X, y):
+    model = LogisticRegression()
+    model.fit(X, y)
+    return model
+
+def train_sgd_classifier(X, y):
+    model = SGDClassifier()
+    model.fit(X, y)
+    return model
 
 
 def plot_to_base64(plt):

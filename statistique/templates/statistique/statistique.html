@@ -6,53 +6,36 @@
     <p>{{ message }}</p>
 {% else %}
     <div class="element-wrapper">
-      <div class="element">
-        <h3>Data Info</h3>
-        <pre class="data-shape-element">{{ info }}</pre>
-      </div>
-      <div class="element">
-        <h3>Data Shape</h3>
-        <div class="data-shape-wrapper">
-          <div class="data-shape-element">
-            <p> Number of Rows </p>
-            <div>{{ shape.0 }}</div>
-          </div>
-          <div class="data-shape-element">
-            <p> Number of Columns </p>
-            <div>{{ shape.1 }}</div>
-          </div>
+        <div class="element">
+            <h3>Data Info</h3>
+            <pre class="data-shape-element">{{ info }}</pre>
         </div>
-      
-      </div>
-      <div class="table-wrapper element">
-        <h3>Data Head</h3>
-        {{ head|safe }}
-      </div>
-      <div class="table-wrapper element">
-        <h3>Data Statistics</h3>
-        {{ statistics|safe }}
-      </div>
+        <div class="element">
+            <h3>Data Shape</h3>
+            <div class="data-shape-wrapper">
+                <div class="data-shape-element">
+                    <p> Number of Rows </p>
+                    <div>{{ shape.0 }}</div>
+                </div>
+                <div class="data-shape-element">
+                    <p> Number of Columns </p>
+                    <div>{{ shape.1 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="table-wrapper element">
+            <h3>Data Head</h3>
+            {{ head|safe }}
+        </div>
+        <div class="table-wrapper element">
+            <h3>Data describe</h3>
+            {{ statistics|safe }}
+        </div>
+        
     </div>
+    <div class="element matrix">
+      <h3>Correlation Matrix Heatmap</h3>
+      <img src="data:image/png;base64,{{ heatmap_base64 }}" alt="Correlation Matrix Heatmap">
+  </div>
 {% endif %}
 {% endblock %}
-
-<style>
-    .section {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-    .element {
-        width: 48%;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-    }
-    .element h3 {
-        margin-top: 0;
-    }
-    pre {
-        white-space: pre-wrap; /* Helps in wrapping long lines */
-    }
-</style>

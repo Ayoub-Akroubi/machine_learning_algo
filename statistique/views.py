@@ -1,7 +1,10 @@
 from django.shortcuts import render
 import pandas as pd
 import logging
-from io import StringIO
+import matplotlib.pyplot as plt
+import seaborn as sns
+import base64
+from io import BytesIO, StringIO
 from data_upload.models import UploadedDataset
 
 # Set up logging
@@ -16,7 +19,7 @@ def show_statistics(request):
         df = pd.read_csv(file_path)
 
         # Get basic statistics
-        statistics = df.describe().to_html()
+        statistics = df.describe(include='all').to_html()
 
         # Get data info
         buffer = StringIO()
@@ -26,15 +29,39 @@ def show_statistics(request):
         # Get first few rows of the data
         head = df.head().to_html()
 
-        # If reshaping is needed, perform it here
-        
+        # Get data shape
         shape = df.shape
+
+        # Convert boolean columns to numeric (0 and 1)
+        df = df.applymap(lambda x: 1 if x is True else 0 if x is False else x)
+
+        # Convert categorical columns to numeric using one-hot encoding
+        df = pd.get_dummies(df, drop_first=True)
+
+        # Calculate correlation matrix
+        correlation_matrix = df.corr()
+
+        # Generate heatmap
+        plt.figure(figsize=(10, 8))
+        heatmap = sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm')
+
+        # Save it to a bytes buffer
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        plt.close()
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+
+        # Encode image to base64 string
+        heatmap_base64 = base64.b64encode(image_png).decode('utf-8')
 
         return render(request, 'statistique/statistique.html', {
             'statistics': statistics,
             'info': info,
             'head': head,
-            'shape': shape
+            'shape': shape,
+            'heatmap_base64': heatmap_base64,
         })
     except UploadedDataset.DoesNotExist:
         logger.warning('No dataset uploaded yet.')
