@@ -172,25 +172,73 @@ def apply_algorithm(request):
                 kmeans_silhouette, kmeans_plot = apply_kmeans(X)
                 logistic_accuracy, logistic_report, logistic_plot = apply_logistic_regression(X, y)
 
-                best_algorithm = max(
-                    {
-                        "Linear Regression": linear_regression_r2,
-                        "Support Vector Regression": svr_r2,
-                        "Random Forest Regression": random_forest_r2,
-                        "Logistic Regression": logistic_accuracy
-                    },
-                    key=lambda k: {
-                        "Linear Regression": linear_regression_r2,
-                        "Support Vector Regression": svr_r2,
-                        "Random Forest Regression": random_forest_r2,
-                        "Logistic Regression": logistic_accuracy
-                    }[k]
-                )
 
-                best_clustering_algorithm = "K-Means Clustering" if kmeans_silhouette > max(linear_regression_r2, svr_r2, random_forest_r2, logistic_accuracy) else best_algorithm
+                sgd_accuracy,sgd_plot=apply_sgd_classifier(X,y)
+
+
+                unique_val = df[target_column].nunique()
+                is_numeric = pd.api.types.is_numeric_dtype(df[target_column])
+                
+
+                if is_numeric and unique_val > 2 :
+                    best_algorithm = max(
+                        {
+                            "Linear Regression": linear_regression_r2,
+                            "Support Vector Regression": svr_r2,
+                            "Random Forest Regression": random_forest_r2,
+                        },
+                        key=lambda k: {
+                            "Linear Regression": linear_regression_r2,
+                            "Support Vector Regression": svr_r2,
+                            "Random Forest Regression": random_forest_r2,
+                        }[k]
+                    )
+
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'All algorithms are applied.',
+                        'preprocessed': True,
+                        'linear_regression_plot': linear_regression_plot,
+                        'svr_plot': svr_plot,
+                        'random_forest_plot': random_forest_plot,
+                        'linear_regression_r2': linear_regression_r2,
+                        'svr_r2': svr_r2,
+                        'random_forest_r2': random_forest_r2,
+                        'best_algorithm': best_algorithm,
+                    })
+                else :
+                    best_algorithm = max(
+                        {
+                            
+                            "Logistic Regression": logistic_accuracy,
+                            "sgd_classifier":sgd_accuracy
+                        },
+                        key=lambda k: {
+                            
+                            "Logistic Regression": logistic_accuracy,
+                            "sgd_classifier":sgd_accuracy
+
+                        }[k]
+                    )
+
+                    return render(request, 'ml_algorithms/apply_algorithms.html', {
+                        'message': 'All algorithms are applied.',
+                        'preprocessed': True,
+                        
+                        'logistic_plot': logistic_plot,
+                        
+                       
+                        'logistic_accuracy': logistic_accuracy,
+                        'best_algorithm': best_algorithm,
+
+
+                        'sgd_plot':sgd_plot,
+                        "sgd_accuracy":sgd_accuracy
+
+                    })
+
 
                 return render(request, 'ml_algorithms/apply_algorithms.html', {
-                    'message': 'All algorithms are applied.',
+                    'message': 'jhghkk applied.',
                     'preprocessed': True,
                     'linear_regression_plot': linear_regression_plot,
                     'svr_plot': svr_plot,
@@ -203,7 +251,6 @@ def apply_algorithm(request):
                     'kmeans_silhouette': kmeans_silhouette,
                     'logistic_accuracy': logistic_accuracy,
                     'best_algorithm': best_algorithm,
-                    'best_clustering_algorithm': best_clustering_algorithm,
                 })
 
             if 'predict' in request.POST:

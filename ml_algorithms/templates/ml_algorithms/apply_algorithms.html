@@ -119,7 +119,7 @@
 
 
 
-    {% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot and logistic_plot %}
+    {% if linear_regression_plot and svr_plot and random_forest_plot %}
       <div class="best_algorithm">
         <p>Best Algorithm : {{ best_algorithm }}</p>
       </div>
@@ -151,15 +151,19 @@
                   R² Score: {{ random_forest_r2 }}
                 </div>
             </div>
-            <div class="element">
-                <h3>K-Means Clustering</h3>
-                <div class="image-element">
-                    <img src="data:image/png;base64,{{ kmeans_plot }}">
-                </div>
-                <div class="r2-value {% if kmeans_silhouette >= 0.7 %}green{% elif kmeans_silhouette >= 0.4 %}orange{% else %}red{% endif %}">
-                  Silhouette Score: {{ kmeans_silhouette }}
-                </div>
-            </div>
+        </div>
+    {% endif %}
+
+
+
+
+    {% if logistic_plot and sgd_plot %}
+      <div class="best_algorithm">
+        <p>Best Algorithm : {{ best_algorithm }}</p>
+      </div>
+        <div class="element-wrapper">
+            
+            
             <div class="element">
                 <h3>Logistic Regression</h3>
                 <div class="image-element">
@@ -169,6 +173,18 @@
                   Accuracy: {{ logistic_accuracy }}
                 </div>
             </div>
+
+
+
+            <div class="element">
+              <h3>Logistic sgd</h3>
+              <div class="image-element">
+                  <img src="data:image/png;base64,{{ sgd_plot }}">
+              </div>
+              <div class="r2-value {% if sgd_accuracy >= 0.7 %}green{% elif sgd_accuracy >= 0.4 %}orange{% else %}red{% endif %}">
+                Accuracy: {{ sgd_accuracy }}
+              </div>
+          </div>
         </div>
     {% endif %}
 {% endblock %}
