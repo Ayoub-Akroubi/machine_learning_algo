@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'data_upload',
     'statistique',
     'ml_algorithms',
+    'prediction',
 ]
 
 MIDDLEWARE = [
@@ -183,6 +184,7 @@ INSTALLED_APPS = [
     'data_upload',
     'statistique',
     'ml_algorithms',
+    'prediction',
 ]
 
 MIDDLEWARE = [

@@ -487,7 +487,7 @@ def apply_sgd_classifier(X, y):
     clf = SGDClassifier(alpha=0.01, max_iter=1000)
     clf.fit(X_train, y_train)
     
-    # Prédictions sur l'ensemble de test
+    # Prédictions sur l'ensemble de testES
     y_pred = clf.predict(X_test)
     
     # Calculer la précision
@@ -509,10 +509,11 @@ def apply_sgd_classifier(X, y):
     plt.plot(x_values, decision_boundary, label=r'Frontière de décision : $G(X) = a_1 \times x_1 + a_2 \times x_2 + b = 0$', color='magenta')
     
     plt.legend()
-    plt.title("Classification des emails avec SGDClassifier")
+    plt.title("Classification des emails avec SGDclassifier")
     
     # Convertir le graphique en base64
     sgd_plot = plot_to_base64(plt)
+
     plt.close()
     
     return accuracy, sgd_plot
