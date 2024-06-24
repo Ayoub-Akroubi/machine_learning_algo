@@ -47,6 +47,17 @@
             <button type="submit" name="algorithm" value="hierarchical_clustering">Hierarchical Clustering</button>
         </form>
 
+
+
+        <h3>Classification Algorithms</h3>
+        <form method="post" class="algo_forms">
+            {% csrf_token %}
+            <input type="hidden" name="target_column" value="{{ selected_target }}">
+            <button type="submit" name="algorithm" value="logistic_regression">Logistic Regression</button>
+            <button type="submit" name="algorithm" value="sgd_classifier">SGD classifier</button>
+        </form>
+
+
         <h3>Get the best model</h3>
         <form method="post" class="algo_forms">
             {% csrf_token %}
@@ -68,17 +79,25 @@
             Silhouette: {{ silhouette }}
           </div>
         {% endif %}
+
+        {% if accuracy %}
+        <div class="r2-value {% if accuracy >= 0.7 %}green{% elif accuracy >= 0.4 %}orange{% else %}red{% endif %}">
+          accuracy: {{ accuracy }}
+        </div>
+       {% endif %}
+
+
+
         <div class="image-element">
           <img src="data:image/png;base64,{{ plot }}" alt="Algorithm Plot">
         </div>
       </div>
     {% endif %}
 
-    {% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot   %}
-
+    {% if linear_regression_plot and svr_plot and random_forest_plot and kmeans_plot and logistic_plot %}
       <div class="best_algorithm">
         <p>Best Algorithm : {{ best_algorithm }}</p>
-    </div>
+      </div>
         <div class="element-wrapper">
             <div class="element">
                 <h3>Linear Regression</h3>
@@ -113,10 +132,18 @@
                     <img src="data:image/png;base64,{{ kmeans_plot }}">
                 </div>
                 <div class="r2-value {% if kmeans_silhouette >= 0.7 %}green{% elif kmeans_silhouette >= 0.4 %}orange{% else %}red{% endif %}">
-                  Silhouette Score:: {{ kmeans_silhouette }}
+                  Silhouette Score: {{ kmeans_silhouette }}
+                </div>
+            </div>
+            <div class="element">
+                <h3>Logistic Regression</h3>
+                <div class="image-element">
+                    <img src="data:image/png;base64,{{ logistic_plot }}">
+                </div>
+                <div class="r2-value {% if logistic_accuracy >= 0.7 %}green{% elif logistic_accuracy >= 0.4 %}orange{% else %}red{% endif %}">
+                  Accuracy: {{ logistic_accuracy }}
                 </div>
             </div>
         </div>
     {% endif %}
-
 {% endblock %}
