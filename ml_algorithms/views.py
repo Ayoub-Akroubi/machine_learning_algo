@@ -107,7 +107,7 @@ def apply_algorithm(request):
 
                 algorithm = request.POST.get('algorithm')
                 
-                # Initialiser les variables
+                # Initialize variables
                 r2 = 0
                 silhouette = 0
                 accuracy = 0
@@ -124,11 +124,11 @@ def apply_algorithm(request):
                     silhouette, plot = apply_kmeans(X)
                 elif algorithm == 'hierarchical_clustering':
                     silhouette, dendrogram_plot, cluster_plot = apply_hierarchical_clustering(X)
-                    plot = cluster_plot
+                    plot = cluster_plot  # choose which plot to display
                 elif algorithm == 'logistic_regression':
                     accuracy, report, plot = apply_logistic_regression(X, y)
                 elif algorithm == 'sgd_classifier':
-                    accuracy, plot = apply_sgd_classifier(X,y)
+                    accuracy, plot = apply_sgd_classifier(X, y)
                 else:
                     return render(request, 'ml_algorithms/apply_algorithms.html', {
                         'message': 'Invalid algorithm selected.',
@@ -166,21 +166,16 @@ def apply_algorithm(request):
                 X = df.drop(columns=[target_column])
                 y = df[target_column]
 
-                linear_regression_r2, linear_regression_plot = apply_linear_regression(X, y)
-                svr_r2, svr_plot = apply_svr(X, y)
-                random_forest_r2, random_forest_plot = apply_random_forest(X, y)
-                kmeans_silhouette, kmeans_plot = apply_kmeans(X)
-                logistic_accuracy, logistic_report, logistic_plot = apply_logistic_regression(X, y)
-
-
-                sgd_accuracy,sgd_plot=apply_sgd_classifier(X,y)
-
+              
+                
 
                 unique_val = df[target_column].nunique()
                 is_numeric = pd.api.types.is_numeric_dtype(df[target_column])
                 
-
-                if is_numeric and unique_val > 2 :
+                if is_numeric and unique_val > 2:
+                    linear_regression_r2, linear_regression_plot = apply_linear_regression(X, y)
+                    svr_r2, svr_plot = apply_svr(X, y)
+                    random_forest_r2, random_forest_plot = apply_random_forest(X, y)
                     best_algorithm = max(
                         {
                             "Linear Regression": linear_regression_r2,
@@ -205,53 +200,29 @@ def apply_algorithm(request):
                         'random_forest_r2': random_forest_r2,
                         'best_algorithm': best_algorithm,
                     })
-                else :
+                else:
+                    logistic_accuracy, logistic_report, logistic_plot = apply_logistic_regression(X, y)
+                    sgd_accuracy, sgd_plot = apply_sgd_classifier(X, y)
                     best_algorithm = max(
                         {
-                            
                             "Logistic Regression": logistic_accuracy,
-                            "sgd_classifier":sgd_accuracy
+                            "SGD Classifier": sgd_accuracy
                         },
                         key=lambda k: {
-                            
                             "Logistic Regression": logistic_accuracy,
-                            "sgd_classifier":sgd_accuracy
-
+                            "SGD Classifier": sgd_accuracy
                         }[k]
                     )
 
                     return render(request, 'ml_algorithms/apply_algorithms.html', {
                         'message': 'All algorithms are applied.',
                         'preprocessed': True,
-                        
                         'logistic_plot': logistic_plot,
-                        
-                       
                         'logistic_accuracy': logistic_accuracy,
                         'best_algorithm': best_algorithm,
-
-
-                        'sgd_plot':sgd_plot,
-                        "sgd_accuracy":sgd_accuracy
-
+                        'sgd_plot': sgd_plot,
+                        'sgd_accuracy': sgd_accuracy
                     })
-
-
-                return render(request, 'ml_algorithms/apply_algorithms.html', {
-                    'message': 'jhghkk applied.',
-                    'preprocessed': True,
-                    'linear_regression_plot': linear_regression_plot,
-                    'svr_plot': svr_plot,
-                    'random_forest_plot': random_forest_plot,
-                    'kmeans_plot': kmeans_plot,
-                    'logistic_plot': logistic_plot,
-                    'linear_regression_r2': linear_regression_r2,
-                    'svr_r2': svr_r2,
-                    'random_forest_r2': random_forest_r2,
-                    'kmeans_silhouette': kmeans_silhouette,
-                    'logistic_accuracy': logistic_accuracy,
-                    'best_algorithm': best_algorithm,
-                })
 
             if 'predict' in request.POST:
                 target_column = request.session.get('target_column')
@@ -291,7 +262,6 @@ def apply_algorithm(request):
                 elif selected_algorithm == 'sgd_classifier':
                     model = train_sgd_classifier(X, y)
                     prediction = model.predict(input_df)
-                # For clustering algorithms, prediction is not straightforward and might not be applicable
 
                 return render(request, 'ml_algorithms/apply_algorithms.html', {
                     'message': 'Prediction completed.',
@@ -303,24 +273,15 @@ def apply_algorithm(request):
                     'report': request.session.get('report'),
                     'inputs': columns,
                     'target': target_column,
-                    'prediction': prediction[0] if prediction is not None else 'Prediction not available'
+                    'prediction': prediction[0] if prediction is not None else 'Prediction not available',
+                    'selected_algorithm': selected_algorithm
                 })
 
-        return render(request, 'ml_algorithms/apply_algorithms.html', {
-            'columns': columns,
-        })
+        return render(request, 'ml_algorithms/apply_algorithms.html', {'columns': columns})
 
-    except UploadedDataset.DoesNotExist:
-        return render(request, 'ml_algorithms/apply_algorithms.html', {
-            'message': 'No dataset uploaded yet. Please upload data.',
-        })
-    except FileNotFoundError:
-        return render(request, 'ml_algorithms/apply_algorithms.html', {'message': 'Dataset file not found.'})
     except Exception as e:
-        return render(request, 'ml_algorithms/apply_algorithms.html', {
-            'message': f'An error occurred: {str(e)}. Please upload data.',
-        })
-  
+        return render(request, 'ml_algorithms/apply_algorithms.html', {'message': f'Error: {str(e)}'})
+
 
 def train_linear_regression(X, y):
     model = LinearRegression()
